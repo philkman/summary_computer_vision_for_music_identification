@@ -1,52 +1,70 @@
 ---
 title: "Computer Vision for Music Identification"
 author: "Philip Kurmann, philip@kman.ch"
-date: "22 April 2017"
+date: "10 Juni 2017"
 bibliography: summary_computer_vision_for_music_identification_philip_kurmann.bib
 csl: chicago-author-date-de.csl
 xelatex: true
-fontsize: 12pt
+fontsize: 11pt
 numbersections: no
-geometry: margin=1.2cm
+geometry: margin=1.7cm
 ---
 
 # Abstract
-Das Paper "Computer Vision for Music Identification" von Yan Ke, Derek Hoiem und Rahul Sakthankar beschreibt einen Algorithmus zur Identifikation von Musik Titel anhand einer verrauschten Audioaufnahme. Zur Bestimmung werden Methoden der Bilderkennung wie "Boosted Classifiers" und "Local Descriptor Based Object Recognition" verwendet.
+Das Paper "Computer Vision for Music Identification" von Yan Ke, Derek Hoiem und Rahul Sakthankar beschreibt einen Algorithmus zur Identifikation von Musik Titel anhand einer Audioaufnahme. Dafür werden Methoden aus der Bilderkennung eingesetzt, um mittels Filter im Spektrogramm einer Audioaufnahme Ankerpunkte zu finden.
 
-Beim Erkennen von Musik ist man vor allem mit dem Problem konfrontiert, dass die Suchanfrage eine Tonaufnahme sein kann, welche eine schlechte Qualität aufweist oder stark verrauscht ist. Weitere Anforderungen an den Algorithmus: Hohe Erkennungsrate, hohe Präzision, Suche durch kurze Audioaufnahmen sowie schnelles Auffinden der Resultate. Dazu soll das System skalieren, damit auch eine grosse Musikdatenbank durchsucht werden kann.
+Beim Einsatz in der Praxis besteht die Schwierigkeit, dass es sich bei der Suchanfrage um eine qualitativ schlechte oder verrauschte Tonaufnahme handeln kann. Der vorgestellte Algorithmus kann mit diesem Problem umgehen und zeichnet sich weiter durch eine hohe Erkennungsrate, eine hohe Präzision, den zuverlässigen Umgang mit kurzen Suchanfragen sowie mit einer schnellen Antwortzeit aus. 
 
-Dieses Dokument fasst die wichtigsten Punkte des von Ke, Hoiem und Sukhuthankar beschriebenen Algorithmuses zusammen.
+Das System ist sehr effizient beim Indexieren und skaliert daher gut. Dadurch eignet es sich, auch grosse Musikbibliotheken zu durchsuchen.
 
-# Warum das Thema Musikerkennung
-Im Rahmen der Module Machine Learning und Deep Learning des CAS Machine Inteligence wurden divers Methoden des Maschinellen Lernens behandelt. Praktisch alle diese Methode bezogen sich jedoch auf das Thema Bilderkennung bzw. Textgenerierung / Textübersetzung.
-
-Das Thema Musikerkennung könnte die Ausdehnung der gelernten Bilderkennungsmethoden auf Musik / Audio näher beleuchten.
-
-# Zusammenfassung
-## Spektrogramme
-Um Musik mittels Bilderkennungsverfahren zu erkennen, müssen die Schallwellen in Bilder umgewandelt werden. Hierzu werden die Songs in kurze Schnipsel unterteilt, aus welchen mittels der "Short-Term Fourier Transformation" (SSTM) Spektrogramme erstellt werden. Die Spektrogramme repräsentieren die Stärke von 33 logarithmischen Frequenzbänder zwischen 300 und 2000 Hz.
-
-Ohne weitere Filterung kann bereits in diesen Spektrogrammen eine gewisse Ähnlichkeit von verrauschten Aufnahmen mit den Originalen erkannt werden (siehe Abbildung 1b).
+# Computer Vision for Music Identification
+Um Musik mittels Bilderkennungsverfahren zu erkennen, müssen die Schallwellen erst in Bilder umgewandelt werden. Hierzu werden die Songs in kurze, überlappende Stücke geteilt. Mittels der "Short-Term Fourier Transformation" (STFT) werden die Teilstücke anschliessend in Spektrogramme umgewandelt, welche 33 logarithmische Frequenzbänder zwischen 300 und 2000 Hz repräsentieren. 
 
 ![Darstellungen von Audiosignalen [@musicidentification_2005, p. 2]][audio_representations]
 
-## Filter
-Wenngleich im Spektrogramm bereits Ähnlichkeiten erkennbar sind, ist das einfache Vergleichen von Spektrogrammen nicht geeignet, da es zu ungenau und zu langsam ist. Um diesen Problemen zu begegnen, werden Filter gelernt, welche die zu erwarteten Störungen herausfiltern, jedoch die notwendigen Information erhalten. Mittels Machine Learning werden aus einer relativ grossen Menge an zur Verfügung stehenden Filter die relevanten ausgewählt.
+Frühere Musikidentifkations- Methoden betrachteten 1-D Signale. Durch den beschriebenen Ansatz werden diese so als 2-D Bilder betrachtet. Bereits ohne weitere Filterung kann in diesen Spektrogrammen eine gewisse Ähnlichkeit von verrauschten bzw. verzerrten Aufnahmen mit den Originalen erkannt werden (siehe Abbildung 1b). Einfaches Vergleichen von Spektrogrammen wäre jedoch sehr Zeitaufwändig und ist daher nicht geeignet, um eine grosse Kollektion zu durchsuchen. Darüber hinaus ist es schwierig, aufgrund der hohen Informationsdichte Korrelationen zu erkennen. Daher wird eine kleine Anzahl Filter auf das Bild des Spektrogramms angewendet. Die Filter werden mittels dem Pairwise Boosting Algorithmus selektioniert. Das Ziel ist, durch die Filter Störgeräusche möglichst effizient zu eliminieren, dabei jedoch gleichzeitig die relevanten Informationen zu erhalten. Bei richtiger Selektion der Filter entstehen so zuverlässige Fingerprints, bei gleichzeitig starker Reduktion der Datenmenge.
 
-Die Filter des beschriebenen Systems weisen folgende Charakteristiken auf: Basis Frequenz von 1-33, Bandweite von 1-33 und Zeit von 1 Frame (11.6ms) bis 82 Frames (951ms). Anhand dieser Parameter erhält man ca. 25'000 unterschiedliche Filter, wovon 32 Filter ausgewählt werden. Durch wiederholtes Anwenden der Filter auf Fenster von 2048 Samples, welche um jeweils 64 Samples weitergeschoben werden, erhält man eine weitere Abstraktion des Audiosignals, welches robust gegenüber Rauschen ist (siehe Abbildung 1c).
+## Filter
+Das Anwenden der Filter auf das Spektrogramm bewirkt, dass der Algorithmus weniger anfällig auf Störungen reagiert. Die Filter des beschriebenen Systems weisen folgende Charakteristiken auf: Basis Frequenz von 1-33, Bandweite von 1-33 und Zeit von 1 Frame (11.6ms) bis 82 Frames (951ms). Anhand dieser Parameter erhält man ca. 25'000 unterschiedliche Filter, wovon mittels Pairwise Boosting 32 Filter ausgewählt werden. Mögliche Filter sind in Abbildung 2 dargestellt.
+
+Jeder Filter besitzt einen eigenen Treshold. Übersteigt der Wert des Filters an einer bestimmten Stelle im Spektrogramm den Treshold, wird eine 1 zurückgegeben. Andernfalls eine -1. Durch Anwenden der Filter auf ein Fenster von 2048 Samples, erhält man einen Deskriptor, ein ein _M_-Bit Vektor, welcher robust gegenüber Störgeräuschen und Verzerrungen ist. Durch wiederholtes und überlappendes Anwenden der Filter erhält man die Deskriptoren, _M_-Bit Vektoren, welche robust gegenüber Störgeräuschen und Verzerrungen sind (siehe Abbildung 1c). Um den Song zu erkennen werden mehrere sequenzielle Deskriptoren benötigt.
+
+![Mögliche Filter [@musicidentification_2005, p. 2]][filter]
+
 
 ## Pairwise Boosting
-Die Auswahl der Filter wird mittels dem Pairwise Bossting Verfahren durchgeführt [siehe @pairwise_boosted_audio_fingerprint_2005]. Durch die Selektion der richtigen Filter können zur Anfrage passende Audioschnipsel effektiv ermittelt werden.
+Die Filter müssen so gewählt werden, dass das original Signal und seine verzerrte Version sehr ähnliche Deskriptoren liefern. Hingegen sollen Signale von unterschiedlichen Songs stark unterschiedliche Deskriptoren ergeben. Um den Song zu finden, wird anschliessend die Wahrscheinlichkeit ausgerechnet, ob ein Deskriptor der Anfrage und ein Deskriptor aus der Bibliothek vom selben Song stammen. Die Auswahl der Filter wird mittels Pairwise Bossting durchgeführt, eine Weiterentwicklung von Adaboost.
 
-## Okklusionsmodell
-Um eine effektive Erkennung zu gewährleisten muss zusätzlich detektiert werden können, ob ein bestimmtes Audioschnipsel vorwiegend aus Musik bzw. aus Hintergrundgeräuschen besteht. Solche, welche vorwiegend aus Störungen bestehen werden als Okklusion bezeichnet und sollen nicht in die Abfrage mit einfliessen.
+Das Ziel ist es, einen Klassifikator $H(x_1,x_2) \to y=\{-1,1\}$ zu lernen, wobei $x_1$ und $x_2$ zwei Histogramme sind und $y$ beschreibt, ob die Bilder der Audio-Teilstücke von der selben Quelle stammen. Der Klassifikator ist ein Ensemble von _M_ schwachen Klassifikatoren, $h_m(x_1, x_2)$, welcher jeder eine Konfidenz, $c_m$, besitzt. Die schwachen Klassifikatoren sind aus einem Filter $f_m$ und einem Threshold $t_m$ zusammengesetzt. Die Formel lautet:
+$$h_m(x_1,x_2) = sgn[(f_m(x_1)–t_m)(f_m(x_2)–t_m)]$$
+
+Einfach ausgedrückt, werden die Audio-Teilstücke durch den schwachen Klassifikator als identisch eingestuft, wenn sie sich auf der selben Seite des Tresholds befinden.
+
+Die besten Filter werden mittels Pairwise Boosting selektioniert. Hierbei handelt es sich um einen iterativen Machine Learning Algorithmus, bei dem nur für die passenden Teilstücke eine Anpassung der Gewichtung durchgeführt wird. In Pseudocode wird der Algorithmus folgendermassen beschrieben:
+
+__Pairwise Boosting Algorithmus__
+
+__input:__ Sequenz von $n$ Beispielen $\langle(x_{11},x_{21})\rangle..\langle(x_{1n},x_{2n})\rangle$, jedes mit label $y_i \in \{-1,1\}$
+
+__Initialisierung__: $w_i = \frac{1}{n}, i = 1..n$
+
+__for m=1..M__
+
+  1. Finde die Hypothese $h_m(x_1,x_2)$, welche den gewichteten Fehler über die Verteilung $w$ minimiert, wobei $h_m(x_1,x_2) = sgn[(f_m(x_1)-t_m)(f_m(x_2)-t_m)]$ für den Filter $f_m$ und den Treshold $t_m$
+  2. Berechne den gewichteten Fehler: $err_m=\sum_{i=1}^{n}w_i \cdot \delta (h_m(x_{1i},x_{2i}) \neq y_i)$
+  3. Konfidenzwert berechnen: $c_m = log(\frac{1-err_m}{err_m})$
+  4. Gewichte der passenden Paare anpassen: Wenn $_i=1$ und $h_m(x_1,x_2) \neq y_i$, dann $w_i \leftarrow w_i \cdot exp[c_m]$
+  5. Gewichte normalisieren, so dass $\sum_{i:y_i=-1}^{n}{w_i=\sum_{i:y_i=1}^{n}w_i=\frac{1}{2}}$
+
+__Schlusshypothese:__
+
+$H(x_1,x_2)=sgn(\sum_{m=1}^{M}c_m h_m(x_1,x_2))$
+
 
 ## Abfrage
-Alle Songs in der Datenbank werden in kleine Stücke unterteilt und anhand der oben beschriebenen Kriterien indexiert. Bei der Abfrage wird nun das Abfrage-Sample wiederum in Stücke unterteilt und jedes Schnipsel mit den indexierten verglichen. Die Datenbankgrösse und die hohe Zahl von Abfragen welche durch die Zerstückelung entsteht, erfordern einen effektiven Algorithmus zur Bestimmung der Ähnlichkeiten.
+Um grosse Musiksammlungen zu indizieren, ist es wichtig, dass das System skaliert. Ursprünglich wollte man den Retrieval-Prozess mittels Suche in einem Multidimensionalen Raum lösen und dafür Locality-Sensitive Hashing (LSH) einsetzen. Es hat sich jedoch gezeigt, dass es einen sehr einfachen Ansatz gibt, welcher ähnlich gute Resultate hervorbringt, jedoch die Laufzeit drastisch verbessert. Hierzu werden die Signaturen der Audio Teilstücke indexiert. Um bei der Abfrage alle Resultate innerhalb der Hamming Distanz 2 zu finden, geschieht diese in 3 Schritten: Im ersten Schritt wird die Hashtabelle mit dem Descriptor der Aufnahme durchsucht. Dies ergibt Resultate mit der Hamming Distanz 0. Danach wird die Abfrage _M_-mal wiederholt, jeweils mit einem anderen BIT, das gedreht wurde. Dies ergibt die Resultate mit Hamming Distanz 1. Danach werden alle Kombinationen mit 2 gedrehten Bits abgefragt. Dies ergibt die Resultate mit Hamming Distanz 2.
 
-Als effiziente Methode hat sich das Abspeichern der _M_ beschreibenden Parameter in einer Hash-Tabelle erwiesen. Alle Parameter mit einem Hamming-Abstand von 2 werden als Near-Neighbors bezeichnet. Bei der Abfrage werden in einem ersten Schritt alle Resultate gesucht, welche eine Hamming Distanz von 0 aufweisen. Danach werden _M_ weitere Proben durchgeführt, bei welcher jedes mal ein einzelnes Bit gedreht wird. Die so erhaltenen Resultate weisen eine Hamming-Distanz von 1 auf. Als letzten Schritt werden alle Kombination mit 2 gedrehten Bits gesucht, wodurch die Resultate mit Hamming-Distanz 2 gefunden werden. Obwohl man es nicht erwarten würde, hat sich diese einfache Methode  als sehr effizient herausgestellt.
-
-Nachdem alle Near-Neighbor Schnipsel gefunden wurden, muss man den Song identifizieren. Dies wird anhand einer geometrischen Verifikation durchgeführt, welche Ähnlichkeiten mit der Objekterkennung durch Local Features aufweist. Für jeden möglichen Song wird geprüft, ob sich die Deskriptoren stabil über die Zeit verhalten. Mittels RANSAC wird über die Zeitausrichtung der ermittelten Kandidaten iteriert und die so erhaltene Fehleranzahl (eM-Score) wird als Distanzmetrik zur Bestimmung verwendet.
+Nachdem alle Near-Neighbor Teilstücke innerhalb der Hamming Distanz 2 gefunden wurden, muss man den Song identifizieren. Dies wird anhand einer geometrischen Verifikation durchgeführt, um die zeitliche Ausrichtung der gefundenen Deskriptoren in den Vergleich miteinzubeziehen. Der verwendete Algorithmus, für diese geometrische Verifikation, heisst RANSAC. Er iteriert über die Zeitausrichtung der ermittelten Kandidaten und liefert als Resultat die Fehleranzahl (EM-Score), welche als Distanzmetrik dient, um den korrekten Song zu bestimmen. Dank RANSAC wird die Abfrage stabil gegenüber Deskriptoren, welche vorwiegend aus Störgeräuschen bestehen. 
 
 ## Random Sample Consensus (RANSAC)
 RANSAC ist ein iterativer Algorithmus zur Schätzung eines Modells innerhalb einer Reihe von fehlerbehafteten Messwerten und wurde 1985 von Martin Fischler und Robert Bolles entwickelt. Er weisst eine hohe Robustheit gegenüber Ausreissern auf und findet deshalb Verwendung in diversen Machine Learning Verfahren, bei denen der Least Squares Ansatz schlecht funktioniert.
@@ -60,16 +78,16 @@ Voraussetzung für RANSAC ist, dass mehr Datenpunkte vorliegen, als für die Bes
 3. Ermittlung der Anzahl Punkte, die weniger weit weg vom Modell sind, als ein bestimmter Schwellwert. (eM-Score)
 4. Schritte 1-3 _n_ mal wiederholen und das beste Modell bestimmen.
 
-# Test Setup und Performance
-Der Training-Datensatz bestand aus 78 Songs. Daraus wurden 2 Test-Datensätze mit Störungen erstellt werden. Hierzu wurden die Songs auf schlechten Lautsprecher abgespielt und mittels günstigen Mikrofonen wieder aufgenommen. Mittels diesem Setup wurden 2 Testsets erstellt: Test-Set A, bei welchem die Songs mit tiefer Lautstärke abgespielt wurden und Test-Set B, bei welchem sehr laute Hintergrundgeräusche zu hören waren.
-
-Die Datenbank umfasste 1862 Songs von unterschiedlichen Musikrichtungen. Mit dem Test-Set A konnten 90% der Songs erkannt werden mit einer Genauigkeit von 96%. Beim schwierigeren Test-Set B konnten immerhin 80% der Songs mit einer Genauigkeit von 93% erkannt werden.
 
 # Schlussfolgerung
-"Computer Vision for Music Identification" erklärt auf anschauliche Weise, wie zuverlässige Systeme zur Identifizierung von Songs gebaut werden können. Zum Verständnis des kompletten Algorithmuses (beispielsweise das RANSAC Verfahren) müssen jedoch weiterführende Quellen konsultiert werden.
+Da ich einen starken Bezug zum Thema Musik habe, war ich fasziniert als ich vor mehr als 10 Jahren Shazam, ein Musikerkennungsdienst, entdeckt habe. “Computer Vision for Music Identification” erklärt auf anschauliche Weise, wie zuverlässige Systeme zur Identifizierung von Songs gebaut werden können. Durch dieses Paper und der Konsultation von weiteren Quellen, verstehe ich nun, wie ein Service zur Musikerkennung funktionieren kann.
 
-Obwohl im Dokument @musicidentification_2005 Verfahren der Bilderkennung eingesetzt werden, ist es doch ein sehr spezifisches Problem das behandelt wird. Der erste Teil, die Umwandlung der Audiosignale in die Pairwise Boosted Audio Fingerprints [siehe @pairwise_boosted_audio_fingerprint_2005] ist jedoch eine zuverlässige und robuste Methode, um Audio Signale mittels Machine Learning zu verarbeiten.
+Die Anwendung von Bilderkennungsverfahren zur Identifikation von Musik ist ein effektives Verfahren. Es zeigt eindrücklich wie durch die Adaption von bewährten Methoden auf ein neues Anwendungsgebiet hervorragende Resultate erzielt werden können. Interessant ist auch einmal mehr zu sehen, dass die Wahl des richtigen Algorithmus grosse Auswirkungen auf die Effizienz haben kann (siehe Abschnitt Abfrage).
+
+Das vorliegende Paper ist aus dem Jahr 2007. Obwohl man das Problem der Musikerkennung gelöst hat, wird an diesem Thema weiter geforscht. Mittlerweile gibt es auch verbesserte Methoden [siehe @pairwise_boosted_audio_fingerprint_2009].
 
 # Referenzen
 [audio_representations]: images/audio_representations.png "Von Computer Vision for Music Identification [Ke, Hoiem und Sukthankar, 2005]"
+[filter]: images/filter.png "Von Computer Vision for Music Identification [Ke, Hoiem und Sukthankar, 2005]"
 [ransac]: images/ransac.png "Von Random Sample Consensus: A Paradigm for Model Fitting with Apphcatlons to Image Analysis and Automated Cartography [Fischler und Bolles, 1981]"
+

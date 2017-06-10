@@ -1,7 +1,7 @@
 ## About
 As part of the Machine Learning Module from the [CAS Machine Inteligence](https://weiterbildung.zhaw.ch/de/school-of-engineering/programm/cas-machine-intelligence.html) education at [ZHAW](https://www.zhaw.ch), I wrote a summary paper in german about ["Computer Vision for Music Identification"](http://www.cs.cmu.edi/~yke/musicretrieval/) (Ke, Hoiem, Sukthankar).
 
-Based on pandoc / bibtex document template from [Marcel Canclini](https://github.com/canclini/summary_recurrent_neural_networks).
+Based on pandoc / bibtex document template from [Marcel Canclini](https://github.com/canclini/).
 
 ## Dependencies
 * pandoc
