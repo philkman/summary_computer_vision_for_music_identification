@@ -27,7 +27,7 @@ Frühere Musikidentifkations- Methoden betrachteten 1-D Signale. Durch den besch
 ## Filter
 Das Anwenden der Filter auf das Spektrogramm bewirkt, dass der Algorithmus weniger anfällig auf Störungen reagiert. Die Filter des beschriebenen Systems weisen folgende Charakteristiken auf: Basis Frequenz von 1-33, Bandweite von 1-33 und Zeit von 1 Frame (11.6ms) bis 82 Frames (951ms). Anhand dieser Parameter erhält man ca. 25'000 unterschiedliche Filter, wovon mittels Pairwise Boosting 32 Filter ausgewählt werden. Mögliche Filter sind in Abbildung 2 dargestellt.
 
-Jeder Filter besitzt einen eigenen Treshold. Übersteigt der Wert des Filters an einer bestimmten Stelle im Spektrogramm den Treshold, wird eine 1 zurückgegeben. Andernfalls eine -1. Durch Anwenden der Filter auf ein Fenster von 2048 Samples, erhält man einen Deskriptor, ein ein _M_-Bit Vektor, welcher robust gegenüber Störgeräuschen und Verzerrungen ist. Durch wiederholtes und überlappendes Anwenden der Filter erhält man die Deskriptoren, _M_-Bit Vektoren, welche robust gegenüber Störgeräuschen und Verzerrungen sind (siehe Abbildung 1c). Um den Song zu erkennen werden mehrere sequenzielle Deskriptoren benötigt.
+Jeder Filter besitzt einen eigenen Treshold. Übersteigt der Wert des Filters an einer bestimmten Stelle im Spektrogramm den Treshold, wird eine 1 zurückgegeben. Andernfalls eine -1. Durch Anwenden der Filter auf ein Fenster von 2048 Samples, erhält man einen Deskriptor, ein _M_-Bit Vektor, welcher robust gegenüber Störgeräuschen und Verzerrungen ist. Durch wiederholtes und überlappendes Anwenden der Filter erhält man die Deskriptoren, _M_-Bit Vektoren, welche robust gegenüber Störgeräuschen und Verzerrungen sind (siehe Abbildung 1c). Um den Song zu erkennen werden mehrere sequenzielle Deskriptoren benötigt.
 
 ![Mögliche Filter [@musicidentification_2005, p. 2]][filter]
 
@@ -36,7 +36,7 @@ Jeder Filter besitzt einen eigenen Treshold. Übersteigt der Wert des Filters an
 Die Filter müssen so gewählt werden, dass das original Signal und seine verzerrte Version sehr ähnliche Deskriptoren liefern. Hingegen sollen Signale von unterschiedlichen Songs stark unterschiedliche Deskriptoren ergeben. Um den Song zu finden, wird anschliessend die Wahrscheinlichkeit ausgerechnet, ob ein Deskriptor der Anfrage und ein Deskriptor aus der Bibliothek vom selben Song stammen. Die Auswahl der Filter wird mittels Pairwise Bossting durchgeführt, eine Weiterentwicklung von Adaboost.
 
 Das Ziel ist es, einen Klassifikator $H(x_1,x_2) \to y=\{-1,1\}$ zu lernen, wobei $x_1$ und $x_2$ zwei Histogramme sind und $y$ beschreibt, ob die Bilder der Audio-Teilstücke von der selben Quelle stammen. Der Klassifikator ist ein Ensemble von _M_ schwachen Klassifikatoren, $h_m(x_1, x_2)$, welcher jeder eine Konfidenz, $c_m$, besitzt. Die schwachen Klassifikatoren sind aus einem Filter $f_m$ und einem Threshold $t_m$ zusammengesetzt. Die Formel lautet:
-$$h_m(x_1,x_2) = sgn[(f_m(x_1)–t_m)(f_m(x_2)–t_m)]$$
+$$h_m(x_1,x_2) = sgn[(f_m(x_1)-t_m)(f_m(x_2)-t_m)]$$
 
 Einfach ausgedrückt, werden die Audio-Teilstücke durch den schwachen Klassifikator als identisch eingestuft, wenn sie sich auf der selben Seite des Tresholds befinden.
 
